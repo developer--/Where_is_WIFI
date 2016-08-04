@@ -17,13 +17,13 @@ class NetworkReceiver : BroadcastReceiver {
         this.networkListener = networkListener
     }
 
+    constructor() { }
 
     override fun onReceive(context: Context?, intent: Intent?) {
         try {
             if (intent?.extras != null) {
                 val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
                 val ni = connectivityManager.activeNetworkInfo
-
                 if (ni != null && ni.state === NetworkInfo.State.CONNECTED) {
                     networkListener.onNetworkReceive()
                 } else if (intent?.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, java.lang.Boolean.FALSE)!!) {
