@@ -5,12 +5,19 @@ import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
-import android.util.Log
+import com.awesomethings.whereiswifi.interfaces.INetworkListener
 
 /**
  * Created by Master on 8/4/16.
  */
-class NetworkListener : BroadcastReceiver() {
+class NetworkReceiver : BroadcastReceiver {
+    private lateinit var networkListener : INetworkListener
+
+    constructor(networkListener : INetworkListener){
+        this.networkListener = networkListener
+    }
+
+
     override fun onReceive(context: Context?, intent: Intent?) {
         try {
             if (intent?.extras != null) {
@@ -18,9 +25,9 @@ class NetworkListener : BroadcastReceiver() {
                 val ni = connectivityManager.activeNetworkInfo
 
                 if (ni != null && ni.state === NetworkInfo.State.CONNECTED) {
-                    Log.e("MyNetworkReceiver", "wifi is avialable")
+                    networkListener.onNetworkReceive()
                 } else if (intent?.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, java.lang.Boolean.FALSE)!!) {
-                    Log.e("MyNetworkReceiver", "There's no network connectivity")
+                    networkListener.onNetworkGone()
                 }
             }
         } catch (e: Exception) {
