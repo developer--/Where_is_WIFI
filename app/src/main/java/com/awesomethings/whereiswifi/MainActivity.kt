@@ -40,5 +40,3 @@ class MainActivity : AppCompatActivity() , INetworkListener{
         unregisterReceiver(networkReceiver)
     }
 }
-
-
