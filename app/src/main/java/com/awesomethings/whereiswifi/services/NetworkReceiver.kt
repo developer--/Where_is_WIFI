@@ -13,9 +13,11 @@ import com.awesomethings.whereiswifi.interfaces.INetworkListener
 class NetworkReceiver : BroadcastReceiver {
     private lateinit var networkListener : INetworkListener
 
-    constructor(networkListener : INetworkListener){
+    constructor(networkListener : INetworkListener) {
         this.networkListener = networkListener
     }
+
+    constructor()
 
     override fun onReceive(context: Context?, intent: Intent?) {
         try {

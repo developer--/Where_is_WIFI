@@ -6,6 +6,7 @@ import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
 import android.os.Bundle
+import android.util.Log
 import com.awesomethings.whereiswifi.app.permission.MyPermission
 import com.awesomethings.whereiswifi.interfaces.IOnLocationReceive
 import com.google.android.gms.maps.model.LatLng
@@ -22,7 +23,8 @@ class MainActivityPresenter : LocationListener {
     }
 
     fun startLocationListener(activity : Activity){
-        locationManager = activity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        if(locationManager == null)
+            locationManager = activity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         if (MyPermission().checkCoarseLocationPermission(activity) && MyPermission().checkCoarseLocationPermission(activity)) {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0f, this)
         } else {
@@ -40,18 +42,19 @@ class MainActivityPresenter : LocationListener {
 
 
     override fun onLocationChanged(p0: Location?) {
+        Log.e("location_demo","onLocationChanged")
         locationReceive.onLocationReceive(LatLng(p0!!.latitude, p0.longitude))
     }
 
     override fun onProviderDisabled(p0: String?) {
-
+        Log.e("location_demo","onProviderDisabled")
     }
 
     override fun onStatusChanged(p0: String?, p1: Int, p2: Bundle?) {
-
+        Log.e("location_demo","onStatusChanged")
     }
 
     override fun onProviderEnabled(p0: String?) {
-
+        Log.e("location_demo","onProviderEnabled")
     }
 }

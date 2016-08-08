@@ -3,6 +3,7 @@ package com.awesomethings.whereiswifi.view
 import android.content.IntentFilter
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import com.awesomethings.whereiswifi.R
 import com.awesomethings.whereiswifi.app.permission.MyPermission
 import com.awesomethings.whereiswifi.interfaces.INetworkListener
@@ -12,7 +13,6 @@ import com.awesomethings.whereiswifi.services.NetworkReceiver
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
@@ -59,6 +59,7 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
 
     override fun onResume() {
         super.onResume()
+        Log.e("location_demo","register reciver")
         startNetworkListenerBroadcast()
         getMapFragment().getMapAsync { googleMap ->
             mGoogleMap = googleMap
@@ -75,21 +76,25 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
     override fun onLocationReceive(latLng: LatLng) {
         val markerOptions = MarkerOptions()
                 .position(latLng)
+        Log.e("location_demo","onLocationReceive")
         mGoogleMap.addMarker(markerOptions)
     }
 
     override fun onNetworkReceive() {
+        Log.e("location_demo","onNetworkReceive")
         presenter.startLocationListener(this)
-        networkStateTextView_ID.text = "network receive"
+//        networkStateTextView_ID.text = "network receive"
+        println("onNetworkReceive")
     }
 
     override fun onNetworkGone() {
-        presenter.stopLocationUpdates(this)
-        networkStateTextView_ID.text = "network gone"
+//        presenter.stopLocationUpdates(this)
+        Log.e("location_demo","onNetworkGone")
     }
 
     override fun onStop() {
         super.onStop()
+        Log.e("location_demo","unregisterReceiver")
         unregisterReceiver(networkReceiver)
     }
 }
