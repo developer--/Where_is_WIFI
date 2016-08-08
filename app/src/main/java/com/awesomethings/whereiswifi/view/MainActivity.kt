@@ -11,10 +11,11 @@ import com.awesomethings.whereiswifi.presenter.MainActivityPresenter
 import com.awesomethings.whereiswifi.services.NetworkReceiver
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.act
 
@@ -31,7 +32,6 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
         super.onCreate(savedInstanceState)
         presenter = MainActivityPresenter(this)
         setContentView(R.layout.activity_main)
-        startNetworkListenerBroadcast()
     }
 
     /**
@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
      * @return SupportMapFragment
      */
     private fun getMapFragment(): SupportMapFragment {
-        val manager = fragmentManager
+        val manager = supportFragmentManager
         return manager.findFragmentById(R.id.map_fragment_id) as SupportMapFragment
     }
 
@@ -59,6 +59,7 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
 
     override fun onResume() {
         super.onResume()
+        startNetworkListenerBroadcast()
         getMapFragment().getMapAsync { googleMap ->
             mGoogleMap = googleMap
             if (MyPermission().checkCoarseLocationPermission(act) && MyPermission().checkCoarseLocationPermission(act)) {
@@ -72,7 +73,9 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
 
 
     override fun onLocationReceive(latLng: LatLng) {
-
+        val markerOptions = MarkerOptions()
+                .position(latLng)
+        mGoogleMap.addMarker(markerOptions)
     }
 
     override fun onNetworkReceive() {
