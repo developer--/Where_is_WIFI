@@ -17,8 +17,6 @@ class NetworkReceiver : BroadcastReceiver {
         this.networkListener = networkListener
     }
 
-    constructor() { }
-
     override fun onReceive(context: Context?, intent: Intent?) {
         try {
             if (intent?.extras != null) {

@@ -1,34 +1,36 @@
 package com.awesomethings.whereiswifi.presenter
 
+import android.app.Activity
 import android.location.Location
 import android.location.LocationListener
+import android.location.LocationManager
 import android.os.Bundle
-import com.awesomethings.whereiswifi.interfaces.INetworkListener
+import com.awesomethings.whereiswifi.app.permission.MyPermission
 import com.awesomethings.whereiswifi.interfaces.IOnLocationReceive
 import com.google.android.gms.maps.model.LatLng
 
 /**
  * Created by Master on 8/4/16.
  */
-class MainActivityPresenter : INetworkListener, LocationListener {
+class MainActivityPresenter : LocationListener {
 
     private lateinit var locationReceive : IOnLocationReceive
-
+    private lateinit var locationManager : LocationManager
     constructor(locationReceive: IOnLocationReceive) {
         this.locationReceive = locationReceive
     }
 
-
-    override fun onNetworkReceive() {
-
-    }
-
-    override fun onNetworkGone() {
-        
+    fun startLocationListener(locationManager : LocationManager, activity : Activity){
+        if (MyPermission().checkCoarseLocationPermission(activity) && MyPermission().checkCoarseLocationPermission(activity)) {
+//            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this)
+//            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this)
+        } else {
+            MyPermission().requestLocationPermission(activity)
+        }
     }
 
     override fun onLocationChanged(p0: Location?) {
-        locationReceive.onLocationReveive(LatLng(p0!!.latitude, p0.longitude))
+        locationReceive.onLocationReceive(LatLng(p0!!.latitude, p0.longitude))
     }
 
     override fun onProviderDisabled(p0: String?) {
