@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.awesomethings.whereiswifi.R
+import com.awesomethings.whereiswifi.app.MyApplication
 import com.awesomethings.whereiswifi.app.permission.MyPermission
 import com.awesomethings.whereiswifi.interfaces.INetworkListener
 import com.awesomethings.whereiswifi.interfaces.IOnLocationReceive
@@ -16,7 +17,6 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.act
 
 class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive {
@@ -30,6 +30,7 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        MyApplication.graph.inject(this)
         presenter = MainActivityPresenter(this)
         setContentView(R.layout.activity_main)
     }

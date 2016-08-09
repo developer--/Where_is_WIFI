@@ -4,6 +4,7 @@ import android.location.LocationManager
 import com.activeandroid.ActiveAndroid
 import com.activeandroid.Configuration
 import com.awesomethings.whereiswifi.component.ApplicationComponent
+import com.awesomethings.whereiswifi.component.DaggerApplicationComponent
 import com.awesomethings.whereiswifi.module.AppModule
 import javax.inject.Inject
 
@@ -24,9 +25,8 @@ class MyApplication : com.activeandroid.app.Application() {
         super.onCreate()
         val dbConfiguration = Configuration.Builder(this).setDatabaseName("wifi.db").create()
         ActiveAndroid.initialize(dbConfiguration)
-//        graph = DaggerApplicationComponent.builder().appModule(AppModule(this)).build()
-//        graph.inject(this)
-
+        graph = DaggerApplicationComponent.builder().appModule(AppModule(this)).build()
+        graph.inject(this)
     }
 
 }
