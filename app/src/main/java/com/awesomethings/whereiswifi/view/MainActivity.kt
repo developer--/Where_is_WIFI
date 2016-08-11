@@ -1,11 +1,11 @@
 package com.awesomethings.whereiswifi.view
 
 import android.content.IntentFilter
+import android.location.Criteria
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import com.awesomethings.whereiswifi.R
-import com.awesomethings.whereiswifi.app.MyApplication
 import com.awesomethings.whereiswifi.app.permission.MyPermission
 import com.awesomethings.whereiswifi.interfaces.INetworkListener
 import com.awesomethings.whereiswifi.interfaces.IOnLocationReceive
@@ -30,8 +30,7 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        MyApplication.graph.inject(this)
-        presenter = MainActivityPresenter(this)
+        presenter = MainActivityPresenter(this,this)
         setContentView(R.layout.activity_main)
     }
 
@@ -53,11 +52,6 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
         return manager.findFragmentById(R.id.map_fragment_id) as SupportMapFragment
     }
 
-    private fun setCameraPosition(latLng: LatLng, zoom: Float) {
-        val cameraPosition = CameraPosition.Builder().target(latLng).zoom(zoom).build()
-        mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition))
-    }
-
     override fun onResume() {
         super.onResume()
         Log.e("location_demo","register reciver")
@@ -66,13 +60,24 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
             mGoogleMap = googleMap
             if (MyPermission().checkCoarseLocationPermission(act) && MyPermission().checkCoarseLocationPermission(act)) {
                 mGoogleMap.isMyLocationEnabled = true
-                setCameraPosition(LatLng(42.014025, 43.876297), 13f)
+                showMyLocation()
             } else {
                 MyPermission().requestLocationPermission(act)
             }
         }
     }
 
+    private fun showMyLocation() {
+        val criteria = Criteria()
+        val location = presenter.locationManager.getLastKnownLocation(presenter.locationManager.getBestProvider(criteria, false))
+        if (location != null) {
+            val target = LatLng(location.latitude, location.longitude)
+            val builder = CameraPosition.Builder()
+            builder.zoom(22f)
+            builder.target(target)
+            mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(builder.build()))
+        }
+    }
 
     override fun onLocationReceive(latLng: LatLng) {
         val markerOptions = MarkerOptions()
@@ -84,12 +89,10 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
     override fun onNetworkReceive() {
         Log.e("location_demo","onNetworkReceive")
         presenter.startLocationListener(this)
-//        networkStateTextView_ID.text = "network receive"
-        println("onNetworkReceive")
     }
 
     override fun onNetworkGone() {
-//        presenter.stopLocationUpdates(this)
+        presenter.stopLocationUpdates(this)
         Log.e("location_demo","onNetworkGone")
     }
 

@@ -10,18 +10,17 @@ import android.util.Log
 import com.awesomethings.whereiswifi.app.permission.MyPermission
 import com.awesomethings.whereiswifi.interfaces.IOnLocationReceive
 import com.google.android.gms.maps.model.LatLng
-import javax.inject.Inject
 
 /**
  * Created by Jemo on 8/4/16.
  */
 class MainActivityPresenter : LocationListener {
 
-    @Inject
-    private lateinit var locationManager : LocationManager
+    lateinit var locationManager : LocationManager
     private lateinit var locationReceive : IOnLocationReceive
-    constructor(locationReceive: IOnLocationReceive) {
+    constructor(locationReceive: IOnLocationReceive, activity : Activity) {
         this.locationReceive = locationReceive
+        this.locationManager = activity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
     }
 
     fun startLocationListener(activity : Activity){
@@ -31,6 +30,7 @@ class MainActivityPresenter : LocationListener {
             MyPermission().requestLocationPermission(activity)
         }
     }
+
 
     fun stopLocationUpdates(activity : Activity){
         if (MyPermission().checkCoarseLocationPermission(activity) && MyPermission().checkCoarseLocationPermission(activity)) {
