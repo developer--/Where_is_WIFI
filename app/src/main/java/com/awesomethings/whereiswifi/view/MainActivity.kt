@@ -1,8 +1,6 @@
 package com.awesomethings.whereiswifi.view
 
 import android.content.IntentFilter
-import android.graphics.Color
-import android.location.Criteria
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
@@ -13,12 +11,18 @@ import com.awesomethings.whereiswifi.interfaces.IOnLocationReceive
 import com.awesomethings.whereiswifi.model.NetworkLocationModel
 import com.awesomethings.whereiswifi.presenter.MainActivityPresenter
 import com.awesomethings.whereiswifi.services.NetworkReceiver
-import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.*
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.TileOverlayOptions
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.ValueEventListener
 import com.google.maps.android.heatmaps.HeatmapTileProvider
+import com.google.maps.android.heatmaps.WeightedLatLng
 import org.jetbrains.anko.act
+import org.json.JSONObject
+import java.util.*
 
 class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive {
 
@@ -28,10 +32,31 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
     private lateinit var presenter : MainActivityPresenter
     private lateinit var heatMapProvider : HeatmapTileProvider
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        presenter = MainActivityPresenter(this,this)
         setContentView(R.layout.activity_main)
+        presenter = MainActivityPresenter(this,this)
+
+//        presenter.firebaseDB.addValueEventListener(object : ValueEventListener{
+//            override fun onDataChange(p0: DataSnapshot?) {
+//                presenter.dbManager.deleteAllValues()
+//                println(p0?.children.toString())
+//                for (snapshot : DataSnapshot in p0!!.children){
+//                    val json = JSONObject(snapshot.value.toString())
+//                    val latitude = json.getDouble("latitude")
+//                    val longitude = json.getDouble("longitude")
+//                    val latLng = LatLng(latitude,longitude)
+//                    val model = NetworkLocationModel(latLng)
+//                    presenter.listOfMarkers.add(model)
+//                }
+//                presenter.dbManager.insert(presenter.listOfMarkers)
+//            }
+//
+//            override fun onCancelled(p0: DatabaseError?) {
+//
+//            }
+//        })
     }
 
     /**
@@ -58,32 +83,25 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
         startNetworkListenerBroadcast()
         getMapFragment().getMapAsync { googleMap ->
             mGoogleMap = googleMap
-            if (MyPermission().checkCoarseLocationPermission(act) && MyPermission().checkCoarseLocationPermission(act)) {
-                mGoogleMap.isMyLocationEnabled = true
-                mGoogleMap.setMaxZoomPreference(18f)
-                showMyLocation()
-            } else {
-                MyPermission().requestLocationPermission(act)
+            mGoogleMap.isMyLocationEnabled = true
+            if(presenter.getCoordinates().size > 0) {
+                heatMapProvider = HeatmapTileProvider.Builder().data(presenter.getCoordinates()).build()
+                mGoogleMap.addTileOverlay(TileOverlayOptions().tileProvider(heatMapProvider))
+            }
+            else {
+                heatMapProvider = HeatmapTileProvider.Builder().weightedData(mutableListOf(WeightedLatLng(LatLng(0.0,0.0)))).build()
             }
         }
     }
 
-    private fun showMyLocation() {
-        val criteria = Criteria()
-        val location = presenter.locationManager.getLastKnownLocation(presenter.locationManager.getBestProvider(criteria, false))
-        if (location != null) {
-            val target = LatLng(location.latitude, location.longitude)
-            val builder = CameraPosition.Builder()
-            builder.zoom(18f)
-            builder.target(target)
-            mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(builder.build()))
-        }
-    }
-
     override fun onLocationReceive(latLng: LatLng) {
-        presenter.listOfMarkers.add(latLng)
-        Log.e("location_demo","onLocationReceive")
-        heatMapProvider = HeatmapTileProvider.Builder().data(presenter.listOfMarkers).build()
+        val locationModel = NetworkLocationModel(latLng)
+        presenter.listOfLatLng.add(latLng)
+        locationModel.save()
+        presenter.saveValues(presenter.dbManager.getCoordinates() as ArrayList<NetworkLocationModel>)
+
+        heatMapProvider.setData(presenter.listOfLatLng)
+
         heatMapProvider.setRadius(30)
         mGoogleMap.addTileOverlay(TileOverlayOptions().tileProvider(heatMapProvider))
     }
@@ -100,7 +118,5 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
 
     override fun onStop() {
         super.onStop()
-//        Log.e("location_demo","unregisterReceiver")
-//        unregisterReceiver(networkReceiver)
     }
 }

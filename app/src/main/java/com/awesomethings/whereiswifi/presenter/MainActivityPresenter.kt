@@ -8,8 +8,12 @@ import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
 import com.awesomethings.whereiswifi.app.permission.MyPermission
+import com.awesomethings.whereiswifi.database.DBManager
+import com.awesomethings.whereiswifi.extensions.toMap
 import com.awesomethings.whereiswifi.interfaces.IOnLocationReceive
+import com.awesomethings.whereiswifi.model.NetworkLocationModel
 import com.google.android.gms.maps.model.LatLng
+import com.google.firebase.database.FirebaseDatabase
 import java.util.*
 
 /**
@@ -17,11 +21,19 @@ import java.util.*
  */
 class MainActivityPresenter : LocationListener {
 
+    val firebaseDB = FirebaseDatabase.getInstance().getReference("wifi")
+
     lateinit var locationManager : LocationManager
-    lateinit var listOfMarkers : ArrayList<LatLng>
+    lateinit var listOfMarkers : ArrayList<NetworkLocationModel>
+    lateinit var listOfLatLng : ArrayList<LatLng>
+    lateinit var map : Map<String,LatLng>
+    lateinit var dbManager : DBManager
     constructor(locationReceive: IOnLocationReceive, activity : Activity) {
         this.locationReceive = locationReceive
-        this.listOfMarkers = ArrayList<LatLng>()
+        this.listOfMarkers = ArrayList<NetworkLocationModel>()
+        this.listOfLatLng = ArrayList<LatLng>()
+        this.map = HashMap<String, LatLng>()
+        this.dbManager = DBManager()
         this.locationManager = activity.getSystemService(Context.LOCATION_SERVICE) as LocationManager
     }
     private lateinit var locationReceive : IOnLocationReceive
@@ -44,6 +56,14 @@ class MainActivityPresenter : LocationListener {
         }
     }
 
+    fun getCoordinates() : List<LatLng> {
+        val list = dbManager.getCoordinates()
+        val coords = mutableListOf<LatLng>()
+        for (i : NetworkLocationModel in list){
+            coords.add(i.getLatLng())
+        }
+        return coords
+    }
 
     override fun onLocationChanged(p0: Location?) {
         Log.e("location_demo","onLocationChanged")
@@ -61,4 +81,16 @@ class MainActivityPresenter : LocationListener {
     override fun onProviderEnabled(p0: String?) {
         Log.e("location_demo","onProviderEnabled")
     }
+
+    fun saveValues(list : ArrayList<NetworkLocationModel>) {
+        firebaseDB.setValue(list)
+        for (i : NetworkLocationModel in list){
+            firebaseDB.updateChildren(i.toMap())
+//            (map as HashMap<String,LatLng>).put(i.toString(),i)
+        }
+    }
+    fun pushChanges(){
+//        firebaseDB.updateChildren(map.toMap)
+    }
+
 }
