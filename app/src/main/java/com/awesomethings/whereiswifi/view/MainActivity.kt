@@ -1,9 +1,12 @@
 package com.awesomethings.whereiswifi.view
 
+import android.content.Context
 import android.content.IntentFilter
+import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.widget.Toast
 import com.awesomethings.whereiswifi.R
 import com.awesomethings.whereiswifi.app.permission.MyPermission
 import com.awesomethings.whereiswifi.interfaces.INetworkListener
@@ -109,6 +112,36 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
     override fun onNetworkReceive() {
         Log.e("location_demo","onNetworkReceive")
         presenter.startLocationListener(this)
+        val wifi = getSystemService(Context.WIFI_SERVICE) as WifiManager
+        val networkList = wifi.scanResults
+
+        //get current connected SSID for comparison to ScanResult
+        val wi = wifi.connectionInfo
+        val currentSSID = wi.ssid
+
+        if (networkList != null) {
+            for (network in networkList) {
+                //check if current connected SSID
+                if (currentSSID == network.SSID) {
+                    //get capabilities of current connection
+                    val Capabilities = network.capabilities
+                    Log.d("WIFISTATE", network.SSID + " capabilities : " + Capabilities)
+
+                    if (Capabilities.contains("WPA2")) {
+                        Toast.makeText(this,"WPA2",Toast.LENGTH_SHORT).show()
+                        //do something
+                    } else if (Capabilities.contains("WPA")) {
+                        Toast.makeText(this,"WPA",Toast.LENGTH_SHORT).show()
+                        //do something
+                    } else if (Capabilities.contains("WEP")) {
+                        Toast.makeText(this,"WEP",Toast.LENGTH_SHORT).show()
+                        //do something
+                    }else{
+                        Toast.makeText(this,"Free wifi",Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
     }
 
     override fun onNetworkGone() {
