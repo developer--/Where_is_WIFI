@@ -9,6 +9,7 @@ import com.awesomethings.whereiswifi.R
 import com.awesomethings.whereiswifi.app.permission.MyPermission
 import com.awesomethings.whereiswifi.interfaces.INetworkListener
 import com.awesomethings.whereiswifi.interfaces.IOnLocationReceive
+import com.awesomethings.whereiswifi.model.NetworkLocationModel
 import com.awesomethings.whereiswifi.presenter.MainActivityPresenter
 import com.awesomethings.whereiswifi.services.NetworkReceiver
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -17,16 +18,17 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.TileOverlayOptions
+import com.google.maps.android.heatmaps.HeatmapTileProvider
 import org.jetbrains.anko.act
 
 class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive {
 
     private val BROADCAST = "android.net.conn.CONNECTIVITY_CHANGE"
-
     private lateinit var mGoogleMap : GoogleMap
-
     private lateinit var networkReceiver: NetworkReceiver
     private lateinit var presenter : MainActivityPresenter
+    private lateinit var heatMapProvider : HeatmapTileProvider
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,10 +82,13 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
     }
 
     override fun onLocationReceive(latLng: LatLng) {
-        val markerOptions = MarkerOptions()
-                .position(latLng)
+        presenter.listOfMarkers.add(latLng)
+//        val markerOptions = MarkerOptions()
+//                .position(latLng)
+//        mGoogleMap.addMarker(markerOptions)
         Log.e("location_demo","onLocationReceive")
-        mGoogleMap.addMarker(markerOptions)
+        heatMapProvider = HeatmapTileProvider.Builder().data(presenter.listOfMarkers).build()
+        mGoogleMap.addTileOverlay(TileOverlayOptions().tileProvider(heatMapProvider))
     }
 
     override fun onNetworkReceive() {
@@ -99,6 +104,6 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
     override fun onStop() {
         super.onStop()
         Log.e("location_demo","unregisterReceiver")
-        unregisterReceiver(networkReceiver)
+//        unregisterReceiver(networkReceiver)
     }
 }
