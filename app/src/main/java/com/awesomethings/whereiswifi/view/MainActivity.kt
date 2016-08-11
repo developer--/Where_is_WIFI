@@ -1,6 +1,7 @@
 package com.awesomethings.whereiswifi.view
 
 import android.content.IntentFilter
+import android.graphics.Color
 import android.location.Criteria
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -15,10 +16,7 @@ import com.awesomethings.whereiswifi.services.NetworkReceiver
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.TileOverlayOptions
+import com.google.android.gms.maps.model.*
 import com.google.maps.android.heatmaps.HeatmapTileProvider
 import org.jetbrains.anko.act
 
@@ -62,6 +60,7 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
             mGoogleMap = googleMap
             if (MyPermission().checkCoarseLocationPermission(act) && MyPermission().checkCoarseLocationPermission(act)) {
                 mGoogleMap.isMyLocationEnabled = true
+                mGoogleMap.setMaxZoomPreference(18f)
                 showMyLocation()
             } else {
                 MyPermission().requestLocationPermission(act)
@@ -75,7 +74,7 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
         if (location != null) {
             val target = LatLng(location.latitude, location.longitude)
             val builder = CameraPosition.Builder()
-            builder.zoom(22f)
+            builder.zoom(18f)
             builder.target(target)
             mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(builder.build()))
         }
@@ -83,11 +82,9 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
 
     override fun onLocationReceive(latLng: LatLng) {
         presenter.listOfMarkers.add(latLng)
-//        val markerOptions = MarkerOptions()
-//                .position(latLng)
-//        mGoogleMap.addMarker(markerOptions)
         Log.e("location_demo","onLocationReceive")
         heatMapProvider = HeatmapTileProvider.Builder().data(presenter.listOfMarkers).build()
+        heatMapProvider.setRadius(30)
         mGoogleMap.addTileOverlay(TileOverlayOptions().tileProvider(heatMapProvider))
     }
 
@@ -103,7 +100,7 @@ class MainActivity : AppCompatActivity() , INetworkListener, IOnLocationReceive 
 
     override fun onStop() {
         super.onStop()
-        Log.e("location_demo","unregisterReceiver")
+//        Log.e("location_demo","unregisterReceiver")
 //        unregisterReceiver(networkReceiver)
     }
 }
